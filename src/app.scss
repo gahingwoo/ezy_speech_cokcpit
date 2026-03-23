@@ -1,31 +1,11 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 @use "page.scss";
 
-// Let PatternFly Page fill the Cockpit iframe (see pkg/lib/page.scss .ct-page-fill)
+// Let PatternFly Page fill the Cockpit iframe (see pkg/lib/page.scss .ct-page-fill).
+// Do not override Page chrome: RHEL Cockpit “Overview” uses grey page background +
+// rounded white main-container (PatternFly defaults), not a flat full-width white pane.
 html,
 body,
 #app {
   block-size: 100%;
-}
-
-// Default PF Page = grey canvas + inset white “card”. For Cockpit modules we want a
-// full primary (white) pane like the built-in pages, without top/bottom grey gutters.
-body {
-  background: var(--pf-t--global--background--color--primary--default);
-}
-
-.ct-module-page.ct-page-fill {
-  --pf-v6-c-page--BackgroundColor: var(--pf-t--global--background--color--primary--default);
-
-  min-block-size: 100%;
-
-  .pf-v6-c-page__main-container {
-    flex-grow: 1;
-    align-self: stretch;
-    max-block-size: none;
-    max-height: none;
-    margin-inline: 0;
-    border-width: 0;
-    border-radius: 0;
-  }
 }
