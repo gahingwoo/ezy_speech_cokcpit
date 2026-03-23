@@ -1,11 +1,101 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 @use "page.scss";
 
-// Let PatternFly Page fill the Cockpit iframe (see pkg/lib/page.scss .ct-page-fill).
-// Do not override Page chrome: RHEL Cockpit “Overview” uses grey page background +
-// rounded white main-container (PatternFly defaults), not a flat full-width white pane.
+// ============================================
+// 1. 基础 iframe 填充
+// ============================================
 html,
 body,
 #app {
   block-size: 100%;
+}
+
+// ============================================
+// 2. 修复 Cockpit iframe 中的布局问题
+// ============================================
+// 问题：PatternFly Page 在宽屏上预留侧边栏空间
+// 解决：强制单列布局，移除左边距
+.ct-page-fill.pf-v6-c-page {
+  @media screen and (width >= 75rem) {
+    // 更改网格布局区域，只显示 header + main
+    grid-template-areas:
+      "header"
+      "main";
+    // 单列布局
+    grid-template-columns: 1fr;
+  }
+
+  // 移除左侧预留的侧边栏空间
+  --pf-v6-c-page__main-container--MarginInlineStart: 0;
+}
+
+// ============================================
+// 3. PageSection 间距配置
+// ============================================
+.pf-v6-c-page__main-section {
+  // 上下 padding：32px (xl)
+  --pf-v6-c-page__main-section--PaddingBlockStart: var(--pf-t--global--spacer--xl);
+  --pf-v6-c-page__main-section--PaddingBlockEnd: var(--pf-t--global--spacer--xl);
+  
+  // 左右 padding：32px (xl)
+  --pf-v6-c-page__main-section--PaddingInlineStart: var(--pf-t--global--spacer--xl);
+  --pf-v6-c-page__main-section--PaddingInlineEnd: var(--pf-t--global--spacer--xl);
+}
+
+// 移除连续 PageSection 之间的重复 padding
+.pf-v6-c-page__main-section + .pf-v6-c-page__main-section {
+  padding-block-start: 0;
+}
+
+// ============================================
+// 4. 网格组件间距
+// ============================================
+.pf-v6-l-grid {
+  // grid 项目间的间距：24px (lg)
+  --pf-v6-l-grid--all--GridGap: var(--pf-t--global--spacer--lg);
+}
+
+// ============================================
+// 5. Stack 组件间距
+// ============================================
+.pf-v6-l-stack {
+  // Stack 项目间的间距：16px (md)，hasGutter 会使用此值
+  --pf-v6-l-stack--spacer: var(--pf-t--global--spacer--md);
+  
+  &.pf-m-gutter {
+    --pf-v6-l-stack--spacer: var(--pf-t--global--spacer--lg);
+  }
+}
+
+// ============================================
+// 6. Card 内部间距
+// ============================================
+.pf-v6-c-card {
+  // Card 内部间距
+  --pf-v6-c-card__title--PaddingTop: var(--pf-t--global--spacer--lg);
+  --pf-v6-c-card__title--PaddingRight: var(--pf-t--global--spacer--lg);
+  --pf-v6-c-card__title--PaddingBottom: var(--pf-t--global--spacer--lg);
+  --pf-v6-c-card__title--PaddingLeft: var(--pf-t--global--spacer--lg);
+  
+  .pf-v6-c-card__body {
+    --pf-v6-c-card__body--PaddingTop: var(--pf-t--global--spacer--lg);
+    --pf-v6-c-card__body--PaddingRight: var(--pf-t--global--spacer--lg);
+    --pf-v6-c-card__body--PaddingBottom: var(--pf-t--global--spacer--lg);
+    --pf-v6-c-card__body--PaddingLeft: var(--pf-t--global--spacer--lg);
+  }
+}
+
+// ============================================
+// 7. 文本内容（Content）间距
+// ============================================
+.pf-v6-c-content {
+  // 段落底部间距
+  p {
+    margin-bottom: var(--pf-t--global--spacer--md);
+  }
+  
+  // 标题底部间距
+  h1, h2, h3, h4, h5, h6 {
+    margin-bottom: var(--pf-t--global--spacer--sm);
+  }
 }

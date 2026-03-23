@@ -175,14 +175,14 @@ export const Application = () => {
                 <Stack hasGutter>
                     <StackItem>
                         <Content>
-                            <h1>{_("EzySpeech services")}</h1>
-                            <p>{_("Start, stop, or restart the EzySpeech systemd units on this machine.")}</p>
+                            <Content component="h1">{_("EzySpeech services")}</Content>
+                            <Content component="p">{_("Start, stop, or restart the EzySpeech systemd units on this machine.")}</Content>
                         </Content>
                     </StackItem>
                     <StackItem>
                         <Grid hasGutter>
                             {SERVICES.map(s => (
-                                <GridItem key={s.unit} span={12} md={6}>
+                                <GridItem key={s.unit} span={12} md={6} lg={6}>
                                     <ServiceCard unit={s.unit} title={s.title} />
                                 </GridItem>
                             ))}
