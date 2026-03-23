@@ -11,6 +11,7 @@ import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/compo
 import { Content } from "@patternfly/react-core/dist/esm/components/Content/index.js";
 import { Label } from "@patternfly/react-core/dist/esm/components/Label/index.js";
 import { Spinner } from "@patternfly/react-core/dist/esm/components/Spinner/index.js";
+import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page/index.js";
 import { Grid, GridItem } from "@patternfly/react-core/dist/esm/layouts/Grid/index.js";
 import { Stack, StackItem } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
 import { proxy as serviceProxy } from "service.js";
@@ -165,22 +166,30 @@ function ServiceCard({ unit, title }: { unit: string; title: string }) {
 
 export const Application = () => {
     return (
-        <Stack hasGutter>
-            <StackItem>
-                <Content>
-                    <h1>{_("EzySpeech services")}</h1>
-                    <p>{_("Start, stop, or restart the EzySpeech systemd units on this machine.")}</p>
-                </Content>
-            </StackItem>
-            <StackItem>
-                <Grid hasGutter>
-                    {SERVICES.map(s => (
-                        <GridItem key={s.unit} span={12} md={6}>
-                            <ServiceCard unit={s.unit} title={s.title} />
-                        </GridItem>
-                    ))}
-                </Grid>
-            </StackItem>
-        </Stack>
+        <Page
+            className="ct-page-fill"
+            isContentFilled
+            mainAriaLabel={_("EzySpeech services")}
+        >
+            <PageSection isWidthLimited isCenterAligned isFilled>
+                <Stack hasGutter>
+                    <StackItem>
+                        <Content>
+                            <h1>{_("EzySpeech services")}</h1>
+                            <p>{_("Start, stop, or restart the EzySpeech systemd units on this machine.")}</p>
+                        </Content>
+                    </StackItem>
+                    <StackItem>
+                        <Grid hasGutter>
+                            {SERVICES.map(s => (
+                                <GridItem key={s.unit} span={12} md={6}>
+                                    <ServiceCard unit={s.unit} title={s.title} />
+                                </GridItem>
+                            ))}
+                        </Grid>
+                    </StackItem>
+                </Stack>
+            </PageSection>
+        </Page>
     );
 };

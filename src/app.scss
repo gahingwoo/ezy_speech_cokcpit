@@ -1,2 +1,9 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 @use "page.scss";
+
+// Let PatternFly Page fill the Cockpit iframe (see pkg/lib/page.scss .ct-page-fill)
+html,
+body,
+#app {
+  block-size: 100%;
+}
