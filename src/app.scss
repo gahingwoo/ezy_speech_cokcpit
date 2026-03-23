@@ -25,10 +25,9 @@ body,
     grid-template-columns: 1fr;
   }
 
-  // 移除左侧预留的侧边栏空间
-  --pf-v6-c-page__main-container--MarginInlineStart: 0;
+  // 保留与标准 Cockpit 一致的左侧黑色分隔带（page inset）
+  --pf-v6-c-page__main-container--MarginInlineStart: var(--pf-v6-c-page--inset);
 }
-
 // ============================================
 // 3. PageSection 间距配置
 // ============================================

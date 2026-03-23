@@ -182,7 +182,7 @@ export const Application = () => {
                     <StackItem>
                         <Grid hasGutter>
                             {SERVICES.map(s => (
-                                <GridItem key={s.unit} span={12} md={6} lg={6}>
+                                <GridItem key={s.unit} span={12} md={6}>
                                     <ServiceCard unit={s.unit} title={s.title} />
                                 </GridItem>
                             ))}
