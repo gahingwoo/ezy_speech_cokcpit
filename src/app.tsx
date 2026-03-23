@@ -167,11 +167,11 @@ function ServiceCard({ unit, title }: { unit: string; title: string }) {
 export const Application = () => {
     return (
         <Page
-            className="ct-page-fill"
+            className="ct-page-fill ct-module-page"
             isContentFilled
             mainAriaLabel={_("EzySpeech services")}
         >
-            <PageSection isWidthLimited isCenterAligned isFilled>
+            <PageSection isFilled>
                 <Stack hasGutter>
                     <StackItem>
                         <Content>
