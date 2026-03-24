@@ -35,6 +35,175 @@ import cockpit from "cockpit";
 const _ = cockpit.gettext;
 
 // ============================================
+// UpdateButton 组件 - 一键更新
+// ============================================
+
+function UpdateButton() {
+    const { allowed: hasPermission } = useSuperUserPermissions();
+    const [modalOpen, setModalOpen] = useState(false);
+    const [running, setRunning] = useState(false);
+    const [output, setOutput] = useState<string[]>([]);
+    const [exitStatus, setExitStatus] = useState<"success" | "danger" | null>(null);
+    const outputEndRef = useRef<HTMLDivElement | null>(null);
+    const spawnRef = useRef<any>(null);
+
+    // Auto-scroll to bottom as output grows
+    useEffect(() => {
+        if (outputEndRef.current) {
+            outputEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [output]);
+
+    const runUpdate = useCallback(async () => {
+        setOutput([]);
+        setExitStatus(null);
+        setRunning(true);
+        setModalOpen(true);
+
+        try {
+            // 同时读取 WorkingDirectory 和 User 属性
+            const showOut = await cockpit.spawn(
+                ["systemctl", "show", "-p", "WorkingDirectory,User", "ezyspeech-admin.service"],
+                { err: "out" }
+            );
+
+            const dirMatch = showOut.match(/WorkingDirectory=(.+)/);
+            const userMatch = showOut.match(/User=(.+)/);
+
+            if (!dirMatch || !dirMatch[1]) {
+                setOutput(prev => [...prev, _("Error: unable to determine WorkingDirectory from systemctl")]);
+                setExitStatus("danger");
+                setRunning(false);
+                return;
+            }
+
+            const workingDir = dirMatch[1].trim();
+            const serviceUser = userMatch?.[1]?.trim() || null;
+            const venvPython = `${workingDir}/venv/bin/python`;
+            const updateScript = `${workingDir}/update.py`;
+
+            // 构造命令：如果读到 User= 则用 sudo -u <user> 切换身份
+            const cmd = serviceUser
+                ? ["sudo", "-u", serviceUser, venvPython, updateScript]
+                : [venvPython, updateScript];
+
+            setOutput(prev => [...prev, `$ ${cmd.join(" ")}`, ""]);
+
+            const proc = cockpit.spawn(
+                cmd,
+                { directory: workingDir, err: "out", superuser: "require" }
+            );
+            spawnRef.current = proc;
+
+            proc.stream((data: string) => {
+                if (data) {
+                    setOutput(prev => {
+                        const lines = data.split("\n");
+                        return [...prev, ...lines.filter((_, i) => i < lines.length - 1 || lines[i] !== "")];
+                    });
+                }
+            });
+
+            proc.done(() => {
+                setExitStatus("success");
+                setOutput(prev => [...prev, "", _("✓ Update completed successfully.")]);
+                setRunning(false);
+                spawnRef.current = null;
+            });
+
+            proc.fail((err: any) => {
+                const msg = cockpit.message(err) || _("Update failed");
+                setOutput(prev => [...prev, "", `✗ ${msg}`]);
+                setExitStatus("danger");
+                setRunning(false);
+                spawnRef.current = null;
+            });
+        } catch (ex) {
+            const msg = ex instanceof Error ? ex.message : String(ex);
+            setOutput(prev => [...prev, `✗ ${msg}`]);
+            setExitStatus("danger");
+            setRunning(false);
+        }
+    }, []);
+
+    const handleClose = () => {
+        if (spawnRef.current) {
+            try { spawnRef.current.close(); } catch (_) { /* ignore */ }
+            spawnRef.current = null;
+        }
+        setModalOpen(false);
+        setRunning(false);
+    };
+
+    return (
+        <>
+            <Button
+                variant="primary"
+                isDisabled={!hasPermission || running}
+                isLoading={running}
+                onClick={runUpdate}
+                style={{ borderRadius: "var(--pf-v6-c-button--BorderRadius, 4px)" }}
+            >
+                {running ? _("Updating...") : _("Update")}
+            </Button>
+
+            <Modal
+                isOpen={modalOpen}
+                onClose={handleClose}
+                variant="large"
+                aria-labelledby="update-modal-title"
+            >
+                <ModalHeader
+                    title={_("Update EzySpeech")}
+                    labelId="update-modal-title"
+                    {...(exitStatus ? { titleIconVariant: exitStatus } : {})}
+                />
+                <ModalBody>
+                    {running && (
+                        <Flex spaceItems={{ default: "spaceItemsSm" }} alignItems={{ default: "alignItemsCenter" }} style={{ marginBottom: "1rem" }}>
+                            <FlexItem><Spinner size="md" aria-label={_("Running update")} /></FlexItem>
+                            <FlexItem><span style={{ color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>{_("Running update script, please wait...")}</span></FlexItem>
+                        </Flex>
+                    )}
+                    {exitStatus === "success" && (
+                        <Alert variant="success" isInline title={_("Update completed successfully")} style={{ marginBottom: "1rem" }} />
+                    )}
+                    {exitStatus === "danger" && (
+                        <Alert variant="danger" isInline title={_("Update failed")} style={{ marginBottom: "1rem" }} />
+                    )}
+                    <pre style={{
+                        background: "var(--pf-v6-c-code-block__code--BackgroundColor, #1f1f1f)",
+                        color: "var(--pf-v6-c-code-block__code--Color, #fff)",
+                        padding: "var(--pf-t--global--spacer--lg, 24px)",
+                        borderRadius: "var(--pf-v6-c-code-block--BorderRadius, 4px)",
+                        border: "1px solid var(--pf-v6-c-code-block--BorderColor, #333)",
+                        maxHeight: "400px",
+                        overflowY: "auto",
+                        fontSize: "0.75rem",
+                        lineHeight: "1.6",
+                        fontFamily: "'Courier New', monospace",
+                        margin: 0,
+                        whiteSpace: "pre-wrap",
+                        wordWrap: "break-word",
+                    }}>
+                        {output.join("\n")}
+                        <div ref={outputEndRef} />
+                    </pre>
+                </ModalBody>
+                <ModalFooter>
+                    <Button
+                        variant={running ? "secondary" : "primary"}
+                        onClick={handleClose}
+                    >
+                        {running ? _("Cancel") : _("Close")}
+                    </Button>
+                </ModalFooter>
+            </Modal>
+        </>
+    );
+}
+
+// ============================================
 // 1. 类型定义
 // ============================================
 
@@ -84,7 +253,7 @@ function useSuperUserPermissions() {
     useEffect(() => {
         const updateAllowed = () => setAllowed(superuser.allowed === true);
         const proxyWithEvents = superuser as any;
-        
+
         if (proxyWithEvents.addEventListener) {
             proxyWithEvents.addEventListener("changed", updateAllowed);
             return () => {
@@ -215,7 +384,7 @@ function useWebSocketLogStream(unit: string, enabled: boolean = true) {
                         const newLines = pollOutput
                             .split("\n")
                             .filter(l => l.trim());
-                        
+
                         // 将新日志添加到队列，而不是直接更新 State
                         if (newLines.length > 0) {
                             updateQueueRef.current = newLines;
@@ -273,18 +442,18 @@ function stateLabel(state: unknown): {
     status: "success" | "danger" | "warning" | "info" | "custom";
 } {
     switch (state) {
-    case "running":
-        return { text: _("Running"), status: "success" };
-    case "stopped":
-        return { text: _("Stopped"), status: "info" };
-    case "failed":
-        return { text: _("Failed"), status: "danger" };
-    case "starting":
-        return { text: _("Starting"), status: "warning" };
-    case "stopping":
-        return { text: _("Stopping"), status: "warning" };
-    default:
-        return { text: _("Unknown"), status: "info" };
+        case "running":
+            return { text: _("Running"), status: "success" };
+        case "stopped":
+            return { text: _("Stopped"), status: "info" };
+        case "failed":
+            return { text: _("Failed"), status: "danger" };
+        case "starting":
+            return { text: _("Starting"), status: "warning" };
+        case "stopping":
+            return { text: _("Stopping"), status: "warning" };
+        default:
+            return { text: _("Unknown"), status: "info" };
     }
 }
 
@@ -841,7 +1010,7 @@ function LogsTab() {
     const [activeServiceKey, setActiveServiceKey] = useState<ServiceKey>("admin");
     const [searchFilter, setSearchFilter] = useState("");
     const { allowed: hasPermission } = useSuperUserPermissions();
-    
+
     const activeService = SERVICES.find(s => s.key === activeServiceKey);
     const unit = activeService?.unit || "";
 
@@ -883,7 +1052,7 @@ function LogsTab() {
 
             {/* 工具栏 - Toolbar 组件包装搜索和控制 */}
             <StackItem>
-                <Toolbar 
+                <Toolbar
                     colorVariant="secondary"
                     style={{
                         padding: "var(--pf-t--global--spacer--md, 16px) var(--pf-t--global--spacer--lg, 24px)",
@@ -957,10 +1126,10 @@ function LogsTab() {
                         title={_("Waiting for authentication...")}
                     />
                 ) : filteredLogs.length === 0 ? (
-                    <Alert 
-                        variant="info" 
-                        isInline 
-                        title={searchFilter ? _("No matching logs found") : _("No logs available")} 
+                    <Alert
+                        variant="info"
+                        isInline
+                        title={searchFilter ? _("No matching logs found") : _("No logs available")}
                     />
                 ) : (
                     <LogLines lines={filteredLogs} previewLines={PREVIEW_LOG_LINES} />
@@ -975,27 +1144,28 @@ function LogsTab() {
 // ============================================
 
 function ConfigTab() {
-    const [activeServiceKey, setActiveServiceKey] = useState<ServiceKey>("admin");
-    const activeService = SERVICES.find(s => s.key === activeServiceKey);
+    // Admin and User share the same working directory, so no sub-tabs needed
+    const adminUnit = SERVICES.find(s => s.key === "admin")!.unit;
 
     return (
         <Stack hasGutter>
-            {/* 二级标签页 - 服务切换 (Admin/User) */}
+            {/* 配置链接 */}
             <StackItem>
-                <Tabs
-                    activeKey={activeServiceKey}
-                    onSelect={(_event, key) => setActiveServiceKey(key as ServiceKey)}
-                    variant="secondary"
-                >
-                    {SERVICES.map(s => (
-                        <Tab key={s.key} eventKey={s.key as ServiceKey} title={s.title} />
-                    ))}
-                </Tabs>
+                <ConfigLinks unit={adminUnit} />
             </StackItem>
 
-            {/* 配置链接 - 内切容器 */}
+            {/* Update 按钮区域 - 放在 Config 内防止误触 */}
             <StackItem>
-                {activeService && <ConfigLinks unit={activeService.unit} />}
+                <div style={{
+                    borderTop: "1px solid var(--pf-t--global--border--color--default, #d0d0d0)",
+                    paddingTop: "var(--pf-t--global--spacer--lg, 24px)",
+                    marginTop: "var(--pf-t--global--spacer--sm, 8px)",
+                }}>
+                    <Content component="p" style={{ marginBottom: "var(--pf-t--global--spacer--md, 16px)", color: "var(--pf-t--global--text--color--subtle, #6a6e73)", fontSize: "0.875rem" }}>
+                        {_("Run the update script to pull the latest version of EzySpeech.")}
+                    </Content>
+                    <UpdateButton />
+                </div>
             </StackItem>
         </Stack>
     );
@@ -1071,7 +1241,7 @@ export const Application = () => {
                     {/* 标签页导航 + 内容卡片 */}
                     <StackItem>
                         <Card>
-                            <CardBody style={{ 
+                            <CardBody style={{
                                 padding: "0 var(--pf-t--global--spacer--lg, 24px) 0 var(--pf-t--global--spacer--lg, 24px)"
                             }}>
                                 {/* 一级标签页导航 */}
