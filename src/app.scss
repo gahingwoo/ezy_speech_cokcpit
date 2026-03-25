@@ -2,11 +2,12 @@
 @use "page.scss";
 
 // ============================================
-// 1. 基础 iframe 填充
+// 0. 全局 Red Hat 字体
 // ============================================
 html,
 body,
 #app {
+  font-family: "Red Hat Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
   block-size: 100%;
 }
 
@@ -36,9 +37,8 @@ body,
   --pf-v6-c-page__main-section--PaddingBlockStart: var(--pf-t--global--spacer--xl);
   --pf-v6-c-page__main-section--PaddingBlockEnd: var(--pf-t--global--spacer--xl);
   
-  // 左右 padding：32px (xl)
-  --pf-v6-c-page__main-section--PaddingInlineStart: var(--pf-t--global--spacer--xl);
-  --pf-v6-c-page__main-section--PaddingInlineEnd: var(--pf-t--global--spacer--xl);
+  // 左右 padding：24px (lg) - Cockpit 标准
+  padding-inline: 24px;
 }
 
 // 移除连续 PageSection 之间的重复 padding
@@ -96,5 +96,30 @@ body,
   // 标题底部间距
   h1, h2, h3, h4, h5, h6 {
     margin-bottom: var(--pf-t--global--spacer--sm);
+  }
+}
+
+// ============================================
+// 8. 页面 H1 标题 
+// ============================================
+.pf-v6-c-content h1 {
+  font-family: "Red Hat Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+// ============================================
+// 9. Code 元素在暗黑主题下的颜色
+// ============================================
+code {
+  font-family: "Red Hat Mono", "Courier New", monospace;
+  background-color: var(--pf-t--global--background--color--secondary, #f5f5f5);
+  color: var(--pf-t--global--text--color--default, #151515);
+  padding: 0.125rem 0.25rem;
+  border-radius: 2px;
+  
+  @media (prefers-color-scheme: dark) {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
   }
 }

@@ -28,6 +28,7 @@ import CheckCircleIcon from "@patternfly/react-icons/dist/esm/icons/check-circle
 import ExclamationCircleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon";
 import ExclamationTriangleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon";
 import EllipsisVIcon from "@patternfly/react-icons/dist/esm/icons/ellipsis-v-icon";
+import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
 import { proxy as serviceProxy } from "service.js";
 import { superuser as superuserProxy } from "superuser.js";
 import cockpit from "cockpit";
@@ -586,60 +587,91 @@ function ConfigLinks({ unit }: ConfigLinksProps) {
     const configPath = `${workingDir}/config`;
     const encodedPath = encodeURIComponent(encodeURIComponent(configPath));
     const filesLink = `/files#/?path=${encodedPath}`;
+    const workingDirLink = `/files#/?path=${encodeURIComponent(encodeURIComponent(workingDir))}`;
 
     return (
-        <Stack hasGutter>
-            <StackItem>
-                <Content component="p" style={{ marginBottom: "var(--pf-t--global--spacer--md, 16px)" }}>
-                    <strong>{_("Working Directory")}:</strong>
-                    <br />
-                    <code style={{
-                        background: "var(--pf-v6-c-code-block__code--BackgroundColor, #f5f5f5)",
-                        color: "var(--pf-v6-c-code-block__code--Color, #151515)",
-                        padding: "0.5rem 0.75rem",
-                        borderRadius: "var(--pf-v6-c-code-block--BorderRadius, 4px)",
-                        marginTop: "0.5rem",
-                        display: "inline-block",
-                        fontFamily: "'Courier New', monospace",
-                        fontSize: "0.875rem",
-                    }}>
-                        {workingDir}
-                    </code>
-                </Content>
-            </StackItem>
-            <StackItem>
-                <Content component="p" style={{ marginBottom: "var(--pf-t--global--spacer--md, 16px)" }}>
-                    <strong>{_("Configuration Path")}:</strong>
-                    <br />
-                    <code style={{
-                        background: "var(--pf-v6-c-code-block__code--BackgroundColor, #f5f5f5)",
-                        color: "var(--pf-v6-c-code-block__code--Color, #151515)",
-                        padding: "0.5rem 0.75rem",
-                        borderRadius: "var(--pf-v6-c-code-block--BorderRadius, 4px)",
-                        marginTop: "0.5rem",
-                        display: "inline-block",
-                        fontFamily: "'Courier New', monospace",
-                        fontSize: "0.875rem",
-                    }}>
-                        {configPath}
-                    </code>
-                </Content>
-            </StackItem>
-            <StackItem style={{ paddingTop: "var(--pf-t--global--spacer--md, 16px)" }}>
-                <Button
-                    variant="primary"
-                    component="a"
-                    href={filesLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                        borderRadius: "var(--pf-v6-c-button--BorderRadius, 4px)"
-                    }}
-                >
-                    {_("Open in Files")}
-                </Button>
-            </StackItem>
-        </Stack>
+        <DescriptionList isCompact>
+            <DescriptionListGroup>
+                <DescriptionListTerm style={{
+                    color: "var(--pf-t--global--text--color--subtle, #6a6e73)",
+                    fontWeight: 600,
+                    marginBottom: "0.5rem",
+                }}>
+                    {_("Working Directory")}
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                    <Flex spaceItems={{ default: "spaceItemsSm" }} alignItems={{ default: "alignItemsCenter" }} justifyContent={{ default: "justifyContentSpaceBetween" }}>
+                        <FlexItem>
+                            <code style={{
+                                fontFamily: "'Red Hat Mono', monospace",
+                                fontSize: "0.75rem",
+                                wordBreak: "break-all",
+                            }}>
+                                {workingDir}
+                            </code>
+                        </FlexItem>
+                        <FlexItem>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                isInline
+                                component="a"
+                                href={workingDirLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                icon={<ExternalLinkAltIcon />}
+                                iconPosition="end"
+                                style={{
+                                    borderRadius: "var(--pf-v6-c-button--BorderRadius, 4px)"
+                                }}
+                            >
+                                {_("Open")}
+                            </Button>
+                        </FlexItem>
+                    </Flex>
+                </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+                <DescriptionListTerm style={{
+                    color: "var(--pf-t--global--text--color--subtle, #6a6e73)",
+                    fontWeight: 600,
+                    marginBottom: "0.5rem",
+                }}>
+                    {_("Configuration Path")}
+                </DescriptionListTerm>
+                <DescriptionListDescription>
+                    <Flex spaceItems={{ default: "spaceItemsSm" }} alignItems={{ default: "alignItemsCenter" }} justifyContent={{ default: "justifyContentSpaceBetween" }}>
+                        <FlexItem>
+                            <code style={{
+                                fontFamily: "'Red Hat Mono', monospace",
+                                fontSize: "0.75rem",
+                                wordBreak: "break-all",
+                            }}>
+                                {configPath}
+                            </code>
+                        </FlexItem>
+                        <FlexItem>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                isInline
+                                component="a"
+                                href={filesLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                icon={<ExternalLinkAltIcon />}
+                                iconPosition="end"
+                                style={{
+                                    borderRadius: "var(--pf-v6-c-button--BorderRadius, 4px)"
+                                }}
+                            >
+                                {_("Open")}
+                            </Button>
+                        </FlexItem>
+                    </Flex>
+                </DescriptionListDescription>
+            </DescriptionListGroup>
+        </DescriptionList>
     );
 }
 
@@ -1014,8 +1046,8 @@ function LogsTab() {
     const activeService = SERVICES.find(s => s.key === activeServiceKey);
     const unit = activeService?.unit || "";
 
-    // 使用日志流
-    const { logs, error, isStreaming, reconnect, clearLogs } = useWebSocketLogStream(unit, hasPermission);
+    // 使用日志流 - 无需权限也可查看
+    const { logs, error, isStreaming, reconnect, clearLogs } = useWebSocketLogStream(unit, true);
 
     // 过滤日志
     const filteredLogs = useMemo(() => {
@@ -1026,17 +1058,6 @@ function LogsTab() {
 
     return (
         <Stack hasGutter>
-            {/* 权限警告 */}
-            {!hasPermission && (
-                <StackItem>
-                    <Alert
-                        variant="warning"
-                        isInline
-                        title={PERMISSION_ERRORS.VIEW_LOGS}
-                    />
-                </StackItem>
-            )}
-
             {/* 二级标签页 - 服务切换 (Admin/User) */}
             <StackItem>
                 <Tabs
@@ -1076,7 +1097,6 @@ function LogsTab() {
                             <ToolbarItem>
                                 <Button
                                     variant="secondary"
-                                    isDisabled={!hasPermission}
                                     onClick={reconnect}
                                     aria-label={_("Reconnect to log stream")}
                                     style={{
