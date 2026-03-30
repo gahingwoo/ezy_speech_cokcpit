@@ -157,7 +157,6 @@ function UpdateButton() {
                 <ModalHeader
                     title={_("Update EzySpeech")}
                     labelId="update-modal-title"
-                    {...(exitStatus ? { titleIconVariant: exitStatus } : {})}
                 />
                 <ModalBody>
                     {running && (
@@ -909,9 +908,9 @@ function ServiceStatusRow({ unit, title }: ServiceStatusRowProps) {
                                             <DropdownItem
                                                 key="restart"
                                                 isDisabled={!canActOnService}
-                                                onClick={() => { setMenuOpen(false); run(() => proxy.restart()); }}
+                                                onClick={() => { setMenuOpen(false); run(() => isRunning ? proxy.restart() : proxy.start()); }}
                                             >
-                                                {_("Restart")}
+                                                {isRunning ? _("Restart") : _("Start")}
                                             </DropdownItem>
                                             <DropdownItem
                                                 key="stop"
@@ -1242,7 +1241,7 @@ export const Application = () => {
                         <Content>
                             <Content component="h1">{_("EzySpeech services")}</Content>
                             <Content component="p">
-                                {_("Manage EzySpeech systemd services with real-time monitoring and control")}
+                                {_("EzySpeech systemd service status and controls")}
                             </Content>
                         </Content>
                     </StackItem>
