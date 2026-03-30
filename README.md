@@ -287,7 +287,7 @@ Licensed under the LGPL 2.1. See [LICENSE](LICENSE) file for details.
 
 - [Cockpit Project](https://cockpit-project.org/)
 - [Cockpit Development Guide](https://cockpit-project.org/guide)
-- [EzySpeech Project]() - (Add project link here)
+- [EzySpeech Project](https://github.com/gahingwoo/ezy_speech_translate)
 
 ## Release Management
 
